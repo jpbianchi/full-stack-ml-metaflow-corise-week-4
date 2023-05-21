@@ -1,14 +1,14 @@
-from metaflow import FlowSpec, step, S3, card, conda_base, current, Parameter, Flow, project, trigger
+from metaflow import FlowSpec, step, S3, card, conda_base, current, Parameter, Flow, project, trigger, retry, timeout,catch
 from metaflow.cards import Markdown, Table, Image, Artifact
 
-# URL = 'https://outerbounds-datasets.s3.us-west-2.amazonaws.com/taxi/latest.parquet'
-URL = 's3://outerbounds-datasets/taxi/latest.parquet'
+URL = 'https://outerbounds-datasets.s3.us-west-2.amazonaws.com/taxi/latest.parquet'
+#URL = 's3://outerbounds-datasets/taxi/latest.parquet'
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 @trigger(events=['s3'])
 @conda_base(libraries={'pandas': '1.4.2', 'pyarrow': '11.0.0', 'numpy': '1.21.2', 'scikit-learn': '1.1.2'})
 @project(name="taxi_fare_prediction")
-class TaxiFarePrediction(FlowSpec):
+class TaxiFarePredictionChallenger(FlowSpec):
 
     data_url = Parameter("data_url", default=URL)
 
@@ -49,11 +49,12 @@ class TaxiFarePrediction(FlowSpec):
 
     @step
     def linear_model(self):
-        "Fit a single variable, linear model to the data."
-        from sklearn.linear_model import LinearRegression
 
-        # TODO: Play around with the model if you are feeling it.
-        self.model = LinearRegression()
+        # from sklearn.linear_model import LinearRegression
+        #self.model = LinearRegression()
+
+        from sklearn.svm import LinearSVC  # support vector
+        self.model = LinearSVC(dual=False)
 
         self.next(self.validate)
 
@@ -100,4 +101,4 @@ class TaxiFarePrediction(FlowSpec):
 
 
 if __name__ == "__main__":
-    TaxiFarePrediction()
+    TaxiFarePredictionChallenger()
